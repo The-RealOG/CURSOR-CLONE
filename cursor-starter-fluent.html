@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor</title>
+    <!-- Fluent UI Web Components -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components/dist/web-components.js"></script>
+    <!-- Fluent UI Icons -->
+    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.1.0/css/fabric.min.css">
+    <style>
+        /* Fluent UI Design Tokens */
+        :root {
+            /* Brand Colors */
+            --colorBrandBackground: #0F6CBD;
+            --colorBrandBackgroundHover: #115EA3;
+            --colorBrandBackgroundPressed: #0E4775;
+            --colorBrandForeground1: #0F6CBD;
+            --colorBrandForeground2: #115EA3;
+            
+            /* Neutral Colors - Dark Theme */
+            --colorNeutralBackground1: #1F1F1F;
+            --colorNeutralBackground2: #2B2B2B;
+            --colorNeutralBackground3: #3A3A3A;
+            --colorNeutralBackground4: #424242;
+            --colorNeutralBackground5: #4A4A4A;
+            --colorNeutralBackground6: #525252;
+            
+            --colorNeutralForeground1: #FFFFFF;
+            --colorNeutralForeground2: #F5F5F5;
+            --colorNeutralForeground3: #E0E0E0;
+            --colorNeutralForeground4: #CCCCCC;
+            
+            --colorNeutralStroke1: #3A3A3A;
+            --colorNeutralStroke2: #525252;
+            --colorNeutralStroke3: #6A6A6A;
+            
+            /* Semantic Colors */
+            --colorStatusSuccessBackground1: #107C10;
+            --colorStatusWarningBackground1: #F7630C;
+            --colorStatusDangerBackground1: #D13438;
+            
+            /* Typography Tokens */
+            --fontFamilyBase: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+            --fontFamilyMonospace: 'Cascadia Code', 'Courier New', monospace;
+            
+            --fontSizeBase100: 10px;
+            --fontSizeBase200: 12px;
+            --fontSizeBase300: 14px;
+            --fontSizeBase400: 16px;
+            --fontSizeBase500: 20px;
+            --fontSizeBase600: 24px;
+            --fontSizeHero700: 28px;
+            --fontSizeHero800: 32px;
+            --fontSizeHero900: 40px;
+            --fontSizeHero1000: 68px;
+            
+            --fontWeightRegular: 400;
+            --fontWeightMedium: 500;
+            --fontWeightSemibold: 600;
+            --fontWeightBold: 700;
+            
+            --lineHeightBase100: 14px;
+            --lineHeightBase200: 16px;
+            --lineHeightBase300: 20px;
+            --lineHeightBase400: 22px;
+            --lineHeightBase500: 28px;
+            --lineHeightBase600: 32px;
+            --lineHeightHero700: 36px;
+            --lineHeightHero800: 40px;
+            --lineHeightHero900: 52px;
+            --lineHeightHero1000: 92px;
+            
+            /* Spacing Tokens */
+            --spacingHorizontalXS: 2px;
+            --spacingHorizontalS: 4px;
+            --spacingHorizontalSNudge: 6px;
+            --spacingHorizontalM: 8px;
+            --spacingHorizontalMNudge: 10px;
+            --spacingHorizontalL: 12px;
+            --spacingHorizontalXL: 16px;
+            --spacingHorizontalXXL: 20px;
+            --spacingHorizontalXXXL: 24px;
+            
+            --spacingVerticalXS: 2px;
+            --spacingVerticalS: 4px;
+            --spacingVerticalSNudge: 6px;
+            --spacingVerticalM: 8px;
+            --spacingVerticalMNudge: 10px;
+            --spacingVerticalL: 12px;
+            --spacingVerticalXL: 16px;
+            --spacingVerticalXXL: 20px;
+            --spacingVerticalXXXL: 24px;
+            
+            /* Border Radius Tokens */
+            --borderRadiusNone: 0;
+            --borderRadiusSmall: 2px;
+            --borderRadiusMedium: 4px;
+            --borderRadiusLarge: 6px;
+            --borderRadiusXLarge: 8px;
+            --borderRadiusCircular: 50%;
+            
+            /* Shadow Tokens */
+            --shadow2: 0px 1px 2px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+            --shadow4: 0px 2px 4px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+            --shadow8: 0px 4px 8px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+            --shadow16: 0px 8px 16px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+            --shadow28: 0px 14px 28px rgba(0, 0, 0, 0.24), 0px 0px 8px rgba(0, 0, 0, 0.2);
+            --shadow64: 0px 32px 64px rgba(0, 0, 0, 0.24), 0px 0px 8px rgba(0, 0, 0, 0.2);
+            
+            /* Motion Tokens */
+            --durationUltraFast: 50ms;
+            --durationFaster: 100ms;
+            --durationFast: 150ms;
+            --durationNormal: 200ms;
+            --durationGentle: 250ms;
+            --durationSlow: 300ms;
+            --durationSlower: 400ms;
+            --durationUltraSlow: 500ms;
+            
+            --curveAccelerateMax: cubic-bezier(0.8, 0, 1, 1);
+            --curveAccelerateMid: cubic-bezier(0.7, 0, 1, 0.5);
+            --curveAccelerateMin: cubic-bezier(0.8, 0, 0.78, 1);
+            --curveDecelerateMax: cubic-bezier(0, 0, 0.2, 1);
+            --curveDecelerateMid: cubic-bezier(0.1, 0.9, 0.2, 1);
+            --curveDecelerateMin: cubic-bezier(0.33, 0, 0.1, 1);
+            --curveEasyEaseMax: cubic-bezier(0.8, 0, 0.2, 1);
+            --curveEasyEase: cubic-bezier(0.33, 0, 0.67, 1);
+            --curveLinear: cubic-bezier(0, 0, 1, 1);
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--fontFamilyBase);
+            background: var(--colorNeutralBackground1);
+            color: var(--colorNeutralForeground1);
+            overflow-x: hidden;
+        }
+
+        /* Header with Fluent UI styling */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: color-mix(in srgb, var(--colorNeutralBackground2) 80%, transparent);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-bottom: 1px solid var(--colorNeutralStroke2);
+        }
+
+        .header-title {
+            font-size: var(--fontSizeBase500);
+            font-weight: var(--fontWeightSemibold);
+            letter-spacing: 0.5px;
+            color: var(--colorNeutralForeground1);
+            text-transform: uppercase;
+        }
+
+        /* Main container */
+        .container {
+            min-height: 100vh;
+            padding-top: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: calc(48px + var(--spacingVerticalXXXL)) var(--spacingHorizontalXXL) var(--spacingVerticalXXXL);
+            position: relative;
+        }
+
+        /* Hero section with Fluent UI typography */
+        .hero-section {
+            text-align: center;
+            margin-bottom: calc(var(--spacingVerticalXXXL) * 2.5);
+            z-index: 1;
+            position: relative;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--colorBrandBackground) 0%, var(--colorBrandBackgroundPressed) 100%);
+            border-radius: var(--borderRadiusCircular);
+            margin: 0 auto calc(var(--spacingVerticalXXL) + var(--spacingVerticalM));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--fontSizeHero800);
+            font-weight: var(--fontWeightBold);
+            color: var(--colorNeutralForeground1);
+            box-shadow: var(--shadow16);
+            transition: all var(--durationGentle) var(--curveEasyEase);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow28);
+            background: linear-gradient(135deg, var(--colorBrandBackgroundHover) 0%, var(--colorBrandBackground) 100%);
+        }
+
+        .title {
+            font-size: clamp(var(--fontSizeHero800), 5vw, var(--fontSizeHero1000));
+            font-weight: var(--fontWeightRegular);
+            line-height: var(--lineHeightHero900);
+            margin-bottom: var(--spacingVerticalM);
+            background: linear-gradient(135deg, var(--colorNeutralForeground1) 0%, var(--colorBrandForeground1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: var(--fontSizeBase600);
+            color: var(--colorBrandForeground1);
+            font-weight: var(--fontWeightMedium);
+            line-height: var(--lineHeightBase600);
+        }
+
+        /* Fluent UI Card-style action items */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacingHorizontalXXL);
+            max-width: 1000px;
+            width: 100%;
+            z-index: 1;
+            position: relative;
+        }
+
+        .action-card {
+            background: var(--colorNeutralBackground2);
+            border-radius: var(--borderRadiusXLarge);
+            padding: calc(var(--spacingVerticalXXL) * 1.5) var(--spacingHorizontalXXL);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--durationGentle) var(--curveEasyEase);
+            border: 1px solid var(--colorNeutralStroke1);
+            box-shadow: var(--shadow4);
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--colorBrandBackground) 10%, transparent) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity var(--durationGentle) var(--curveEasyEase);
+        }
+
+        .action-card:hover {
+            transform: translateY(-6px);
+            background: var(--colorNeutralBackground3);
+            box-shadow: var(--shadow16);
+            border-color: var(--colorBrandBackground);
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-card:active {
+            transform: translateY(-2px) scale(0.98);
+            transition-duration: var(--durationFast);
+        }
+
+        /* Fluent UI Icon styling */
+        .card-icon {
+            font-size: calc(var(--fontSizeHero800) + 8px);
+            margin-bottom: var(--spacingVerticalXL);
+            transition: all var(--durationGentle) var(--curveEasyEase);
+            opacity: 0.9;
+            z-index: 1;
+            position: relative;
+        }
+
+        .action-card:hover .card-icon {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .card-title {
+            font-size: var(--fontSizeBase600);
+            font-weight: var(--fontWeightSemibold);
+            line-height: var(--lineHeightBase600);
+            margin-bottom: var(--spacingVerticalS);
+            color: var(--colorNeutralForeground1);
+            z-index: 1;
+            position: relative;
+        }
+
+        .card-subtitle {
+            font-size: var(--fontSizeBase300);
+            color: var(--colorNeutralForeground3);
+            line-height: var(--lineHeightBase400);
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Primary action with Fluent UI brand colors */
+        .action-card.primary {
+            background: linear-gradient(135deg, var(--colorBrandBackground) 0%, var(--colorBrandBackgroundPressed) 100%);
+            border-color: var(--colorBrandBackground);
+            color: var(--colorNeutralForeground1);
+        }
+
+        .action-card.primary .card-title,
+        .action-card.primary .card-subtitle {
+            color: var(--colorNeutralForeground1);
+        }
+
+        .action-card.primary:hover {
+            background: linear-gradient(135deg, var(--colorBrandBackgroundHover) 0%, var(--colorBrandBackground) 100%);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow28);
+        }
+
+        /* Fluent UI Button components */
+        fluent-button {
+            --neutral-fill-rest: var(--colorNeutralBackground3);
+            --neutral-fill-hover: var(--colorNeutralBackground4);
+            --neutral-fill-active: var(--colorNeutralBackground5);
+            --neutral-foreground-rest: var(--colorNeutralForeground1);
+            --accent-fill-rest: var(--colorBrandBackground);
+            --accent-fill-hover: var(--colorBrandBackgroundHover);
+            --accent-fill-active: var(--colorBrandBackgroundPressed);
+        }
+
+        /* Loading state with Fluent UI design */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--colorNeutralBackground1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--durationGentle) var(--curveEasyEase);
+        }
+
+        .loading.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            text-align: center;
+            background: var(--colorNeutralBackground2);
+            padding: calc(var(--spacingVerticalXXL) * 2);
+            border-radius: var(--borderRadiusXLarge);
+            border: 1px solid var(--colorNeutralStroke1);
+            box-shadow: var(--shadow28);
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--colorNeutralStroke1);
+            border-top: 3px solid var(--colorBrandBackground);
+            border-radius: var(--borderRadiusCircular);
+            animation: spin var(--durationUltraSlow) var(--curveLinear) infinite;
+            margin: 0 auto var(--spacingVerticalXL);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--colorBrandForeground1);
+            font-size: var(--fontSizeBase400);
+            font-weight: var(--fontWeightMedium);
+        }
+
+        /* Modal with Fluent UI styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: color-mix(in srgb, var(--colorNeutralBackground1) 80%, transparent);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--durationGentle) var(--curveEasyEase);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--colorNeutralBackground2);
+            padding: calc(var(--spacingVerticalXXL) * 2);
+            border-radius: var(--borderRadiusXLarge);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow64);
+            border: 1px solid var(--colorNeutralStroke1);
+            transform: scale(0.9) translateY(20px);
+            transition: transform var(--durationGentle) var(--curveEasyEase);
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-size: var(--fontSizeBase600);
+            font-weight: var(--fontWeightSemibold);
+            color: var(--colorNeutralForeground1);
+            margin-bottom: var(--spacingVerticalXL);
+        }
+
+        .modal-description {
+            font-size: var(--fontSizeBase300);
+            color: var(--colorNeutralForeground3);
+            margin-bottom: calc(var(--spacingVerticalXXL) + var(--spacingVerticalM));
+            line-height: var(--lineHeightBase400);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: var(--spacingVerticalL) var(--spacingHorizontalXL);
+            background: var(--colorNeutralBackground1);
+            border: 1px solid var(--colorNeutralStroke2);
+            border-radius: var(--borderRadiusMedium);
+            color: var(--colorNeutralForeground1);
+            font-size: var(--fontSizeBase300);
+            font-family: var(--fontFamilyBase);
+            margin-bottom: calc(var(--spacingVerticalXXL) + var(--spacingVerticalM));
+            outline: none;
+            transition: border-color var(--durationFast) var(--curveEasyEase);
+        }
+
+        .modal-input:focus {
+            border-color: var(--colorBrandBackground);
+            box-shadow: 0 0 0 1px var(--colorBrandBackground);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--spacingHorizontalL);
+            justify-content: center;
+        }
+
+        /* Footer with Fluent UI styling */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: var(--spacingVerticalXL);
+            text-align: center;
+            background: color-mix(in srgb, var(--colorNeutralBackground1) 80%, transparent);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--colorNeutralStroke1);
+        }
+
+        .footer-text {
+            color: var(--colorNeutralForeground4);
+            font-size: var(--fontSizeBase200);
+        }
+
+        .footer-link {
+            color: var(--colorBrandForeground1);
+            text-decoration: none;
+            transition: color var(--durationFast) var(--curveEasyEase);
+        }
+
+        .footer-link:hover {
+            color: var(--colorBrandForeground2);
+        }
+
+        /* Responsive design with Fluent UI breakpoints */
+        @media (max-width: 768px) {
+            .container {
+                padding: calc(48px + var(--spacingVerticalXXL)) var(--spacingHorizontalL) calc(var(--spacingVerticalXXL) * 2);
+            }
+
+            .hero-section {
+                margin-bottom: calc(var(--spacingVerticalXXL) * 1.5);
+            }
+
+            .logo {
+                width: 100px;
+                height: 100px;
+                font-size: var(--fontSizeHero700);
+                margin-bottom: var(--spacingVerticalXXL);
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacingVerticalXL);
+                max-width: 400px;
+            }
+
+            .action-card {
+                padding: calc(var(--spacingVerticalXXL) + var(--spacingVerticalM)) var(--spacingHorizontalXXL);
+                min-height: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                height: 44px;
+            }
+
+            .header-title {
+                font-size: var(--fontSizeBase400);
+            }
+
+            .container {
+                padding: calc(44px + var(--spacingVerticalXL)) var(--spacingHorizontalM) calc(var(--spacingVerticalXXL) * 2);
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+                font-size: var(--fontSizeBase600);
+            }
+
+            .actions-grid {
+                max-width: 320px;
+            }
+
+            .action-card {
+                padding: var(--spacingVerticalXXL) var(--spacingHorizontalXL);
+                min-height: 160px;
+            }
+
+            .modal-content {
+                padding: var(--spacingVerticalXXL);
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (prefers-contrast: high) {
+            :root {
+                --colorNeutralBackground2: #000000;
+                --colorNeutralForeground1: #ffffff;
+                --colorNeutralStroke1: #ffffff;
+                --colorBrandBackground: #0078d4;
+            }
+        }
+
+        /* Focus visible styles for accessibility */
+        .action-card:focus-visible {
+            outline: 2px solid var(--colorBrandBackground);
+            outline-offset: 2px;
+        }
+
+        fluent-button:focus-visible {
+            outline: 2px solid var(--colorBrandBackground);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1 class="header-title">CURSOR</h1>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="logo" id="logo" role="img" aria-label="Cursor Logo">C</div>
+            <h1 class="title">Cursor</h1>
+            <p class="subtitle">Pro. Settings</p>
+        </section>
+
+        <!-- Action Cards -->
+        <section class="actions-grid" role="region" aria-label="Quick Actions">
+            <div class="action-card primary" onclick="openProject()" role="button" tabindex="0" aria-label="Open existing project">
+                <div class="card-icon" aria-hidden="true">📁</div>
+                <h2 class="card-title">Open project</h2>
+                <p class="card-subtitle">Browse and open an existing project from your computer</p>
+            </div>
+
+            <div class="action-card" onclick="cloneRepo()" role="button" tabindex="0" aria-label="Clone repository from Git">
+                <div class="card-icon" aria-hidden="true">🔄</div>
+                <h2 class="card-title">Clone Repo</h2>
+                <p class="card-subtitle">Clone a repository from GitHub, GitLab, or other Git providers</p>
+            </div>
+
+            <div class="action-card" onclick="connectSSH()" role="button" tabindex="0" aria-label="Connect via SSH to remote server">
+                <div class="card-icon" aria-hidden="true">🔗</div>
+                <h2 class="card-title">Connect via SSH</h2>
+                <p class="card-subtitle">Connect to a remote development environment using SSH</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-text">
+            Built for developers • 
+            <a href="#" class="footer-link">Documentation</a> • 
+            <a href="#" class="footer-link">Support</a>
+        </p>
+    </footer>
+
+    <!-- Loading Screen -->
+    <div class="loading" id="loading" role="dialog" aria-labelledby="loading-text" aria-modal="true">
+        <div class="loading-content">
+            <div class="loading-spinner" role="progressbar" aria-label="Loading"></div>
+            <div class="loading-text" id="loading-text">Opening project...</div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modal-title"></h2>
+            <p class="modal-description" id="modal-description"></p>
+            <input type="text" class="modal-input" id="modal-input" aria-describedby="modal-description" />
+            <div class="modal-actions">
+                <fluent-button id="modal-cancel" onclick="closeModal()">Cancel</fluent-button>
+                <fluent-button id="modal-confirm" appearance="accent" onclick="confirmModal()">Continue</fluent-button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced with Fluent UI patterns and accessibility
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Fluent UI theme
+            initializeFluentTheme();
+            
+            // Add entrance animations with Fluent UI motion tokens
+            animateOnLoad();
+            
+            // Setup keyboard navigation
+            setupKeyboardNavigation();
+            
+            // Setup accessibility features
+            setupAccessibility();
+            
+            // Initialize logo interactions
+            setupLogoInteraction();
+        });
+
+        function initializeFluentTheme() {
+            // Apply Fluent UI theme to web components
+            const fluentButtons = document.querySelectorAll('fluent-button');
+            fluentButtons.forEach(button => {
+                button.setAttribute('appearance', button.id === 'modal-confirm' ? 'accent' : 'neutral');
+            });
+        }
+
+        function animateOnLoad() {
+            // Use Fluent UI motion tokens for animations
+            const cards = document.querySelectorAll('.action-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(32px)';
+                
+                setTimeout(() => {
+                    card.style.transition = `all var(--durationGentle) var(--curveEasyEase)`;
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 + (index * 150));
+            });
+
+            // Animate hero elements
+            const heroElements = document.querySelectorAll('.logo, .title, .subtitle');
+            heroElements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(24px)';
+                
+                setTimeout(() => {
+                    element.style.transition = `all var(--durationSlow) var(--curveEasyEase)`;
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 100 + (index * 200));
+            });
+        }
+
+        function setupKeyboardNavigation() {
+            const interactiveElements = document.querySelectorAll('[role="button"], fluent-button');
+            
+            interactiveElements.forEach(element => {
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (element.onclick) {
+                            element.onclick();
+                        } else {
+                            element.click();
+                        }
+                    }
+                });
+            });
+
+            // Arrow key navigation between cards
+            const cards = document.querySelectorAll('.action-card');
+            cards.forEach((card, index) => {
+                card.addEventListener('keydown', function(e) {
+                    let targetIndex;
+                    
+                    switch(e.key) {
+                        case 'ArrowRight':
+                        case 'ArrowDown':
+                            targetIndex = (index + 1) % cards.length;
+                            break;
+                        case 'ArrowLeft':
+                        case 'ArrowUp':
+                            targetIndex = (index - 1 + cards.length) % cards.length;
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    e.preventDefault();
+                    cards[targetIndex].focus();
+                });
+            });
+        }
+
+        function setupAccessibility() {
+            // Setup proper ARIA live regions for dynamic content
+            const loadingText = document.getElementById('loading-text');
+            loadingText.setAttribute('aria-live', 'polite');
+            
+            // Setup modal accessibility
+            const modal = document.getElementById('modal-overlay');
+            modal.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+            
+            // Trap focus in modal when open
+            modal.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    const focusableElements = modal.querySelectorAll('input, fluent-button');
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+                    
+                    if (e.shiftKey && document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    } else if (!e.shiftKey && document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            });
+        }
+
+        function setupLogoInteraction() {
+            const logo = document.getElementById('logo');
+            let clickCount = 0;
+            
+            logo.addEventListener('click', function() {
+                clickCount++;
+                
+                if (clickCount === 5) {
+                    // Fluent UI themed Easter egg
+                    const brandColors = [
+                        'var(--colorBrandBackground)',
+                        'var(--colorStatusSuccessBackground1)',
+                        'var(--colorStatusWarningBackground1)',
+                        'var(--colorStatusDangerBackground1)'
+                    ];
+                    let colorIndex = 0;
+                    
+                    const colorInterval = setInterval(() => {
+                        logo.style.background = `linear-gradient(135deg, ${brandColors[colorIndex]} 0%, ${brandColors[(colorIndex + 1) % brandColors.length]} 100%)`;
+                        colorIndex = (colorIndex + 1) % brandColors.length;
+                    }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--durationNormal')));
+                    
+                    setTimeout(() => {
+                        clearInterval(colorInterval);
+                        logo.style.background = 'linear-gradient(135deg, var(--colorBrandBackground) 0%, var(--colorBrandBackgroundPressed) 100%)';
+                        clickCount = 0;
+                    }, 3000);
+                }
+            });
+        }
+
+        // Action functions with Fluent UI loading states
+        function openProject() {
+            showLoadingScreen();
+            
+            setTimeout(() => {
+                window.location.href = 'cursor-ide-fluent.html';
+            }, 1500);
+        }
+
+        function cloneRepo() {
+            showModal(
+                'Clone Repository',
+                'Enter the repository URL you want to clone:',
+                'https://github.com/username/repo.git',
+                function(url) {
+                    if (url && isValidUrl(url)) {
+                        showLoadingScreen();
+                        updateLoadingMessage('Cloning repository...');
+                        setTimeout(() => {
+                            window.location.href = 'cursor-ide-fluent.html';
+                        }, 2000);
+                    } else if (url) {
+                        showNotification('Please enter a valid repository URL', 'error');
+                    }
+                }
+            );
+        }
+
+        function connectSSH() {
+            showModal(
+                'SSH Connection',
+                'Enter SSH connection string:',
+                'user@hostname:port',
+                function(sshString) {
+                    if (sshString && isValidSSH(sshString)) {
+                        showLoadingScreen();
+                        updateLoadingMessage('Establishing SSH connection...');
+                        setTimeout(() => {
+                            window.location.href = 'cursor-ide-fluent.html';
+                        }, 2500);
+                    } else if (sshString) {
+                        showNotification('Please enter a valid SSH connection string', 'error');
+                    }
+                }
+            );
+        }
+
+        function showLoadingScreen() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('show');
+            loading.setAttribute('aria-hidden', 'false');
+            
+            // Fluent UI loading messages
+            const messages = [
+                'Initializing workspace...',
+                'Loading project files...',
+                'Setting up environment...',
+                'Configuring editor...',
+                'Almost ready...'
+            ];
+            
+            const loadingText = document.getElementById('loading-text');
+            let messageIndex = 0;
+            
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                loadingText.textContent = messages[messageIndex];
+            }, 800);
+            
+            setTimeout(() => {
+                clearInterval(messageInterval);
+            }, 5000);
+        }
+
+        function updateLoadingMessage(message) {
+            const loadingText = document.getElementById('loading-text');
+            loadingText.textContent = message;
+        }
+
+        function showModal(title, description, placeholder, callback) {
+            const modal = document.getElementById('modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDescription = document.getElementById('modal-description');
+            const modalInput = document.getElementById('modal-input');
+            
+            modalTitle.textContent = title;
+            modalDescription.textContent = description;
+            modalInput.placeholder = placeholder;
+            modalInput.value = '';
+            
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Focus the input after animation
+            setTimeout(() => {
+                modalInput.focus();
+            }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--durationGentle')));
+            
+            // Store callback
+            window.currentModalCallback = callback;
+            
+            // Handle enter key
+            modalInput.addEventListener('keydown', handleModalKeydown);
+        }
+
+        function handleModalKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmModal();
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-overlay');
+            const modalInput = document.getElementById('modal-input');
+            
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            
+            modalInput.removeEventListener('keydown', handleModalKeydown);
+            window.currentModalCallback = null;
+        }
+
+        function confirmModal() {
+            const modalInput = document.getElementById('modal-input');
+            const value = modalInput.value.trim();
+            
+            const callback = window.currentModalCallback;
+            closeModal();
+            
+            if (callback) {
+                callback(value);
+            }
+        }
+
+        // Validation functions
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return string.includes('github.com') || string.includes('gitlab.com') || string.includes('.git');
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function isValidSSH(string) {
+            // Basic SSH connection string validation
+            return /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9.-]+(:[\d]+)?$/.test(string);
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create Fluent UI styled notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: var(--spacingVerticalXXL);
+                right: var(--spacingHorizontalXXL);
+                background: var(--colorNeutralBackground2);
+                color: var(--colorNeutralForeground1);
+                padding: var(--spacingVerticalL) var(--spacingHorizontalXL);
+                border-radius: var(--borderRadiusMedium);
+                box-shadow: var(--shadow16);
+                border: 1px solid var(--colorNeutralStroke1);
+                z-index: 3000;
+                animation: slideIn var(--durationGentle) var(--curveEasyEase);
+                max-width: 400px;
+                font-size: var(--fontSizeBase300);
+            `;
+            
+            if (type === 'error') {
+                notification.style.borderColor = 'var(--colorStatusDangerBackground1)';
+                notification.style.background = 'color-mix(in srgb, var(--colorStatusDangerBackground1) 10%, var(--colorNeutralBackground2))';
+            }
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: var(--spacingHorizontalM);">
+                    <span>${type === 'error' ? '❌' : 'ℹ️'}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = `slideOut var(--durationGentle) var(--curveEasyEase)`;
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--durationGentle')));
+            }, 3000);
+        }
+
+        // Add slide animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+
+

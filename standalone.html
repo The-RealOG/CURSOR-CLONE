@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor AI Clone</title>
+    <style>
+        /* CSS Variables for consistent theming */
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --bg-accent: #007acc;
+            --border-color: #3c3c3c;
+            --text-primary: #cccccc;
+            --text-secondary: #888888;
+            --text-accent: #007acc;
+            --hover-bg: #2a2d2e;
+            --selected-bg: #37373d;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Main layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Activity Bar */
+        .activity-bar {
+            width: 48px;
+            background-color: #333333;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .activity-icon:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .activity-icon.active {
+            background-color: var(--selected-bg);
+            color: var(--text-accent);
+        }
+
+        .activity-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        /* File Explorer */
+        .file-explorer {
+            padding: 8px 0;
+        }
+
+        .project-name {
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .file-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .file-item.selected {
+            background-color: var(--selected-bg);
+        }
+
+        .file-icon {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Editor Area */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 35px;
+        }
+
+        .editor-tab {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: var(--bg-tertiary);
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .editor-tab.active {
+            background-color: var(--bg-primary);
+            border-bottom: 2px solid var(--bg-accent);
+        }
+
+        .editor-tab:hover:not(.active) {
+            background-color: #323233;
+        }
+
+        .editor-tab-close {
+            margin-left: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .editor-tab:hover .editor-tab-close {
+            opacity: 1;
+        }
+
+        .editor-tab-close:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .editor-content {
+            flex: 1;
+            background-color: var(--bg-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 16px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            width: 400px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .chat-content {
+            flex: 1;
+            overflow: auto;
+            padding: 12px;
+        }
+
+        .chat-message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.user {
+            background-color: #0078d4;
+            color: white;
+        }
+
+        .chat-avatar.assistant {
+            background-color: var(--bg-accent);
+            color: white;
+        }
+
+        .chat-message-content {
+            flex: 1;
+        }
+
+        .chat-message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .chat-message-name {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-message-name.user {
+            color: #0078d4;
+        }
+
+        .chat-message-name.assistant {
+            color: var(--bg-accent);
+        }
+
+        .chat-message-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .chat-message-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-height: 36px;
+            max-height: 120px;
+            padding: 8px 12px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--bg-accent);
+        }
+
+        .chat-send-btn {
+            padding: 8px 12px;
+            background-color: var(--bg-accent);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background-color: #106ebe;
+        }
+
+        .chat-send-btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 24px;
+            background-color: var(--bg-accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 12px;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+
+        .status-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Welcome message */
+        .welcome-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .welcome-message h2 {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .welcome-message p {
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background-color: var(--bg-accent);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #106ebe;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Hidden by default */
+        .hidden {
+            display: none;
+        }
+
+        /* Icons using unicode symbols */
+        .icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            line-height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-content">
+            <!-- Activity Bar -->
+            <div class="activity-bar">
+                <div class="activity-icon active" data-panel="explorer" title="Explorer">
+                    <span class="icon">📁</span>
+                </div>
+                <div class="activity-icon" data-panel="search" title="Search">
+                    <span class="icon">🔍</span>
+                </div>
+                <div class="activity-icon" data-panel="source-control" title="Source Control">
+                    <span class="icon">🌿</span>
+                </div>
+                <div class="activity-icon" data-panel="extensions" title="Extensions">
+                    <span class="icon">🧩</span>
+                </div>
+                <div style="margin-top: auto;">
+                    <div class="activity-icon" title="Settings">
+                        <span class="icon">⚙️</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <span id="sidebar-title">Explorer</span>
+                    <div>
+                        <span style="cursor: pointer;" title="New File">📄</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="New Folder">📁</span>
+                    </div>
+                </div>
+                <div class="sidebar-content">
+                    <div id="explorer-content">
+                        <div class="project-name">CURSOR-CLONE</div>
+                        <div class="file-explorer">
+                            <div class="file-item" data-file="src">
+                                <span class="file-icon">📁</span>
+                                <span>src</span>
+                            </div>
+                            <div class="file-item" style="padding-left: 28px;" data-file="components">
+                                <span class="file-icon">📁</span>
+                                <span>components</span>
+                            </div>
+                            <div class="file-item selected" style="padding-left: 44px;" data-file="App.tsx">
+                                <span class="file-icon">📄</span>
+                                <span>App.tsx</span>
+                            </div>
+                            <div class="file-item" style="padding-left: 44px;" data-file="Sidebar.tsx">
+                                <span class="file-icon">📄</span>
+                                <span>Sidebar.tsx</span>
+                            </div>
+                            <div class="file-item" style="padding-left: 44px;" data-file="EditorArea.tsx">
+                                <span class="file-icon">📄</span>
+                                <span>EditorArea.tsx</span>
+                            </div>
+                            <div class="file-item" style="padding-left: 28px;" data-file="index.css">
+                                <span class="file-icon">📄</span>
+                                <span>index.css</span>
+                            </div>
+                            <div class="file-item" style="padding-left: 28px;" data-file="main.tsx">
+                                <span class="file-icon">📄</span>
+                                <span>main.tsx</span>
+                            </div>
+                            <div class="file-item" data-file="public">
+                                <span class="file-icon">📁</span>
+                                <span>public</span>
+                            </div>
+                            <div class="file-item" data-file="package.json">
+                                <span class="file-icon">📄</span>
+                                <span>package.json</span>
+                            </div>
+                            <div class="file-item" data-file="README.md">
+                                <span class="file-icon">📄</span>
+                                <span>README.md</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="search-content" class="hidden">
+                        <div style="padding: 12px;">
+                            <input type="text" placeholder="Search files..." style="width: 100%; padding: 8px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #cccccc; border-radius: 4px;">
+                            <div style="margin-top: 12px; color: #888; font-size: 13px;">
+                                Search results will appear here
+                            </div>
+                        </div>
+                    </div>
+                    <div id="source-control-content" class="hidden">
+                        <div style="padding: 12px; text-align: center; color: #888; margin-top: 40px;">
+                            No source control providers registered.
+                        </div>
+                    </div>
+                    <div id="extensions-content" class="hidden">
+                        <div style="padding: 12px; text-align: center; color: #888; margin-top: 40px;">
+                            Manage your extensions
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Area -->
+            <div class="editor-area">
+                <div class="editor-tabs">
+                    <div class="editor-tab active" data-tab="app-tsx">
+                        <span>App.tsx</span>
+                        <div class="editor-tab-close">×</div>
+                    </div>
+                    <div class="editor-tab" data-tab="readme-md">
+                        <span>README.md</span>
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #fff; margin-left: 4px;"></span>
+                        <div class="editor-tab-close">×</div>
+                    </div>
+                </div>
+                <div class="editor-content" id="editor-content">import { FluentProvider, webDarkTheme } from '@fluentui/react-components';
+import './App.css';
+
+// Components
+import Sidebar from './components/Sidebar';
+import EditorArea from './components/EditorArea';
+import StatusBar from './components/StatusBar';
+import ChatPanel from './components/ChatPanel';
+
+function App() {
+  return (
+    &lt;FluentProvider theme={webDarkTheme}&gt;
+      &lt;div className="app-container"&gt;
+        &lt;div className="main-content"&gt;
+          &lt;Sidebar /&gt;
+          &lt;EditorArea /&gt;
+          &lt;ChatPanel /&gt;
+        &lt;/div&gt;
+        &lt;StatusBar /&gt;
+      &lt;/div&gt;
+    &lt;/FluentProvider&gt;
+  );
+}
+
+export default App;</div>
+            </div>
+
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <div class="chat-header-title">
+                        <span>🤖</span>
+                        <span>Cursor AI</span>
+                    </div>
+                    <div>
+                        <span style="cursor: pointer;" title="Settings">⚙️</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="Clear Chat" onclick="clearChat()">🗑️</span>
+                    </div>
+                </div>
+                <div class="chat-content" id="chat-content">
+                    <div class="chat-message">
+                        <div class="chat-avatar assistant">🤖</div>
+                        <div class="chat-message-content">
+                            <div class="chat-message-header">
+                                <span class="chat-message-name assistant">Cursor AI</span>
+                                <span class="chat-message-time">Just now</span>
+                            </div>
+                            <div class="chat-message-text">
+                                Hello! I'm Cursor AI, your coding assistant. I can help you write, debug, and improve your code. What would you like to work on today?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <textarea 
+                            id="chat-input" 
+                            class="chat-input" 
+                            placeholder="Ask Cursor AI anything..."
+                            rows="1"
+                        ></textarea>
+                        <button class="chat-send-btn" onclick="sendMessage()">Send</button>
+                    </div>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">
+                        Press Enter to send, Shift+Enter for new line
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <span>🌿</span>
+                    <span>main</span>
+                </div>
+                <div class="status-item">
+                    <span>☁️</span>
+                    <span>Sync: 0↑ 0↓</span>
+                </div>
+                <div class="status-item">
+                    <span>✅</span>
+                    <span>0</span>
+                </div>
+                <div class="status-item">
+                    <span>⚠️</span>
+                    <span>0</span>
+                </div>
+                <div class="status-item">
+                    <span>❌</span>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-item">Ln 1, Col 1</div>
+                <div class="status-item">Spaces: 2</div>
+                <div class="status-item">UTF-8</div>
+                <div class="status-item">TypeScript</div>
+                <div class="status-item">🔴 Live Share</div>
+                <div style="background: #16825d; padding: 2px 6px; border-radius: 2px; font-weight: bold;">
+                    Cursor
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for interactivity
+        const fileContents = {
+            'App.tsx': `import { FluentProvider, webDarkTheme } from '@fluentui/react-components';
+import './App.css';
+
+// Components
+import Sidebar from './components/Sidebar';
+import EditorArea from './components/EditorArea';
+import StatusBar from './components/StatusBar';
+import ChatPanel from './components/ChatPanel';
+
+function App() {
+  return (
+    <FluentProvider theme={webDarkTheme}>
+      <div className="app-container">
+        <div className="main-content">
+          <Sidebar />
+          <EditorArea />
+          <ChatPanel />
+        </div>
+        <StatusBar />
+      </div>
+    </FluentProvider>
+  );
+}
+
+export default App;`,
+            'README.md': `# Cursor AI Clone
+
+This is a frontend clone of Cursor AI, built with React, TypeScript, and Fluent UI.
+
+## Features
+
+- VS Code-like interface
+- Monaco Editor integration
+- AI Chat panel
+- File explorer
+- Fluent UI design system
+
+## Getting Started
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+
+Built with ❤️ using modern web technologies.`,
+            'package.json': `{
+  "name": "cursor-clone",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.68.3",
+    "@fluentui/react-icons": "^2.0.307",
+    "@monaco-editor/react": "^4.7.0",
+    "monaco-editor": "^0.52.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}`
+        };
+
+        // Activity bar functionality
+        document.querySelectorAll('.activity-icon[data-panel]').forEach(icon => {
+            icon.addEventListener('click', () => {
+                // Remove active class from all icons
+                document.querySelectorAll('.activity-icon').forEach(i => i.classList.remove('active'));
+                // Add active class to clicked icon
+                icon.classList.add('active');
+                
+                // Hide all content panels
+                document.querySelectorAll('[id$="-content"]').forEach(panel => panel.classList.add('hidden'));
+                
+                // Show selected panel
+                const panelId = icon.dataset.panel + '-content';
+                document.getElementById(panelId).classList.remove('hidden');
+                
+                // Update sidebar title
+                const titles = {
+                    'explorer': 'Explorer',
+                    'search': 'Search',
+                    'source-control': 'Source Control',
+                    'extensions': 'Extensions'
+                };
+                document.getElementById('sidebar-title').textContent = titles[icon.dataset.panel];
+            });
+        });
+
+        // File item clicks
+        document.querySelectorAll('.file-item[data-file]').forEach(item => {
+            item.addEventListener('click', () => {
+                const fileName = item.dataset.file;
+                if (fileContents[fileName]) {
+                    // Remove selected class from all file items
+                    document.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+                    // Add selected class to clicked item
+                    item.classList.add('selected');
+                    
+                    // Update editor content
+                    document.getElementById('editor-content').innerHTML = escapeHtml(fileContents[fileName]);
+                    
+                    // Update active tab
+                    document.querySelectorAll('.editor-tab').forEach(tab => tab.classList.remove('active'));
+                    const tabId = fileName.replace('.', '-').toLowerCase();
+                    const tab = document.querySelector(`[data-tab="${tabId}"]`);
+                    if (tab) tab.classList.add('active');
+                }
+            });
+        });
+
+        // Tab functionality
+        document.querySelectorAll('.editor-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                if (e.target.classList.contains('editor-tab-close')) return;
+                
+                // Remove active class from all tabs
+                document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update editor content based on tab
+                const tabId = tab.dataset.tab;
+                const fileMap = {
+                    'app-tsx': 'App.tsx',
+                    'readme-md': 'README.md'
+                };
+                const fileName = fileMap[tabId];
+                if (fileName && fileContents[fileName]) {
+                    document.getElementById('editor-content').innerHTML = escapeHtml(fileContents[fileName]);
+                }
+            });
+        });
+
+        // Tab close functionality
+        document.querySelectorAll('.editor-tab-close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeBtn.parentElement.remove();
+            });
+        });
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatContent = document.getElementById('chat-content');
+            
+            // Add user message
+            const userMessage = createChatMessage('user', 'You', message);
+            chatContent.appendChild(userMessage);
+            
+            // Clear input
+            input.value = '';
+            
+            // Scroll to bottom
+            chatContent.scrollTop = chatContent.scrollHeight;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = [
+                    "I'd be happy to help you with that! Let me analyze your code and provide some suggestions.",
+                    "That's a great question! Here's how I would approach this problem:",
+                    "I can see what you're trying to achieve. Let me help you implement this feature.",
+                    "This looks like a common pattern. I'll show you the best practices for handling this.",
+                    "I notice a few areas where we can optimize this code. Let me walk you through the improvements.",
+                    "Here's a clean and efficient solution for your use case:",
+                    "That's an interesting challenge! Let me break this down step by step for you."
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                const aiMessage = createChatMessage('assistant', 'Cursor AI', response);
+                chatContent.appendChild(aiMessage);
+                chatContent.scrollTop = chatContent.scrollHeight;
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function createChatMessage(type, name, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            const avatar = document.createElement('div');
+            avatar.className = `chat-avatar ${type}`;
+            avatar.textContent = type === 'user' ? '👤' : '🤖';
+            
+            const content = document.createElement('div');
+            content.className = 'chat-message-content';
+            
+            const header = document.createElement('div');
+            header.className = 'chat-message-header';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = `chat-message-name ${type}`;
+            nameSpan.textContent = name;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'chat-message-time';
+            timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'chat-message-text';
+            textDiv.textContent = text;
+            
+            header.appendChild(nameSpan);
+            header.appendChild(timeSpan);
+            content.appendChild(header);
+            content.appendChild(textDiv);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            return messageDiv;
+        }
+
+        function clearChat() {
+            const chatContent = document.getElementById('chat-content');
+            chatContent.innerHTML = '';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Chat input enter key handling
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('chat-input').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    </script>
+</body>
+</html>

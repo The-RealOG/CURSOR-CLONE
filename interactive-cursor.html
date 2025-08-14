@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor AI Clone - Interactive</title>
+    <style>
+        /* CSS Variables for consistent theming */
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --bg-accent: #007acc;
+            --bg-hover: #2a2d2e;
+            --bg-selected: #37373d;
+            --border-color: #3c3c3c;
+            --text-primary: #cccccc;
+            --text-secondary: #888888;
+            --text-accent: #007acc;
+            --text-success: #16825d;
+            --text-warning: #ffcc02;
+            --text-error: #f85149;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            --sidebar-width: 300px;
+            --activity-bar-width: 48px;
+            --chat-panel-width: 400px;
+            --status-bar-height: 24px;
+            --tab-height: 35px;
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        /* Main layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Activity Bar */
+        .activity-bar {
+            width: var(--activity-bar-width);
+            background-color: #333333;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: var(--text-primary);
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .activity-icon:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .activity-icon.active {
+            background-color: var(--bg-selected);
+            color: var(--text-accent);
+        }
+
+        .activity-icon.active::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 16px;
+            background-color: var(--text-accent);
+        }
+
+        /* Sidebar with resize handle */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            min-width: 200px;
+            max-width: 600px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: -2px;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            cursor: ew-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .resize-handle:hover {
+            background: var(--text-accent);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            min-height: 30px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        /* File Explorer */
+        .file-explorer {
+            padding: 8px 0;
+        }
+
+        .project-name {
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .file-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .file-item.selected {
+            background-color: var(--bg-selected);
+        }
+
+        .file-item.expanded > .file-icon::before {
+            transform: rotate(90deg);
+        }
+
+        .file-icon {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.15s ease;
+        }
+
+        .file-icon.folder::before {
+            content: '▶';
+            font-size: 10px;
+            color: var(--text-secondary);
+            transition: transform 0.15s ease;
+        }
+
+        .file-children {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .file-children.expanded {
+            max-height: 500px;
+        }
+
+        /* Editor Area */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            min-height: var(--tab-height);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .editor-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .editor-tab {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: var(--bg-tertiary);
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            position: relative;
+            min-width: 120px;
+        }
+
+        .editor-tab.active {
+            background-color: var(--bg-primary);
+            border-bottom: 2px solid var(--bg-accent);
+        }
+
+        .editor-tab:hover:not(.active) {
+            background-color: #323233;
+        }
+
+        .editor-tab-close {
+            margin-left: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            font-size: 14px;
+        }
+
+        .editor-tab:hover .editor-tab-close {
+            opacity: 1;
+        }
+
+        .editor-tab-close:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .editor-content {
+            flex: 1;
+            background-color: var(--bg-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 2;
+        }
+
+        /* Syntax highlighting */
+        .syntax-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            pointer-events: none;
+            white-space: pre;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            color: transparent;
+            overflow: hidden;
+        }
+
+        /* Chat Panel with resize */
+        .chat-panel {
+            width: var(--chat-panel-width);
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            min-width: 250px;
+            max-width: 600px;
+        }
+
+        .chat-resize-handle {
+            position: absolute;
+            left: -2px;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            cursor: ew-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .chat-resize-handle:hover {
+            background: var(--text-accent);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 35px;
+        }
+
+        .chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .chat-content {
+            flex: 1;
+            overflow: auto;
+            padding: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.user {
+            background-color: #0078d4;
+            color: white;
+        }
+
+        .chat-avatar.assistant {
+            background-color: var(--bg-accent);
+            color: white;
+        }
+
+        .chat-message-content {
+            flex: 1;
+        }
+
+        .chat-message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .chat-message-name {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-message-name.user {
+            color: #0078d4;
+        }
+
+        .chat-message-name.assistant {
+            color: var(--bg-accent);
+        }
+
+        .chat-message-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .chat-message-text {
+            font-size: 14px;
+            line-height: 1.4;
+            user-select: text;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            animation: typingDot 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% {
+                opacity: 0.3;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-height: 36px;
+            max-height: 120px;
+            padding: 8px 12px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--bg-accent);
+        }
+
+        .chat-send-btn {
+            padding: 8px 12px;
+            background-color: var(--bg-accent);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s ease;
+            min-width: 60px;
+        }
+
+        .chat-send-btn:hover:not(:disabled) {
+            background-color: #106ebe;
+        }
+
+        .chat-send-btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: var(--status-bar-height);
+            background-color: var(--bg-accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 12px;
+            z-index: 100;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.15s ease;
+        }
+
+        .status-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Minimap */
+        .minimap {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-left: 1px solid var(--border-color);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Command Palette */
+        .command-palette {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            max-height: 400px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+
+        .command-palette.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .command-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--bg-primary);
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .command-results {
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .command-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.15s ease;
+        }
+
+        .command-item:hover, .command-item.selected {
+            background-color: var(--bg-selected);
+        }
+
+        /* Notifications */
+        .notifications {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .notification {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            max-width: 350px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            :root {
+                --sidebar-width: 250px;
+                --chat-panel-width: 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            :root {
+                --sidebar-width: 200px;
+                --chat-panel-width: 250px;
+            }
+            
+            .editor-tab {
+                min-width: 100px;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar, .chat-panel {
+                position: absolute;
+                top: 0;
+                height: 100%;
+                z-index: 200;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .chat-panel {
+                right: 0;
+                transform: translateX(100%);
+            }
+            
+            .chat-panel.show {
+                transform: translateX(0);
+            }
+            
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 150;
+                display: none;
+            }
+            
+            .mobile-overlay.show {
+                display: block;
+            }
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Selection */
+        ::selection {
+            background-color: var(--bg-accent);
+            color: white;
+        }
+
+        /* Hidden utility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text-secondary);
+            border-top: 2px solid var(--text-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-content">
+            <!-- Activity Bar -->
+            <div class="activity-bar">
+                <div class="activity-icon active" data-panel="explorer" title="Explorer (⌘⇧E)">
+                    <span>📁</span>
+                </div>
+                <div class="activity-icon" data-panel="search" title="Search (⌘⇧F)">
+                    <span>🔍</span>
+                </div>
+                <div class="activity-icon" data-panel="source-control" title="Source Control (⌃⇧G)">
+                    <span>🌿</span>
+                </div>
+                <div class="activity-icon" data-panel="extensions" title="Extensions (⌘⇧X)">
+                    <span>🧩</span>
+                </div>
+                <div style="margin-top: auto;">
+                    <div class="activity-icon" title="Settings (⌘,)">
+                        <span>⚙️</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="resize-handle" data-resize="sidebar"></div>
+                <div class="sidebar-header">
+                    <span id="sidebar-title">Explorer</span>
+                    <div>
+                        <span style="cursor: pointer;" title="New File" onclick="createNewFile()">📄</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="New Folder" onclick="createNewFolder()">📁</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="Refresh" onclick="refreshExplorer()">🔄</span>
+                    </div>
+                </div>
+                <div class="sidebar-content">
+                    <div id="explorer-content">
+                        <div class="project-name">CURSOR-CLONE</div>
+                        <div class="file-explorer" id="file-explorer">
+                            <!-- File tree will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div id="search-content" class="hidden">
+                        <div style="padding: 12px;">
+                            <input type="text" id="search-input" placeholder="Search files..." style="width: 100%; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; margin-bottom: 12px;">
+                            <div style="margin-bottom: 8px;">
+                                <input type="text" id="replace-input" placeholder="Replace..." style="width: 100%; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;">
+                            </div>
+                            <div id="search-results" style="color: var(--text-secondary); font-size: 13px;">
+                                Enter text to search across files
+                            </div>
+                        </div>
+                    </div>
+                    <div id="source-control-content" class="hidden">
+                        <div style="padding: 12px;">
+                            <div style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <span style="color: var(--text-accent);">📝</span>
+                                    <span style="font-weight: bold;">Changes (3)</span>
+                                </div>
+                                <div class="file-item" style="padding-left: 20px;">
+                                    <span style="color: var(--text-warning);">M</span>
+                                    <span style="margin-left: 8px;">src/App.tsx</span>
+                                </div>
+                                <div class="file-item" style="padding-left: 20px;">
+                                    <span style="color: var(--text-success);">A</span>
+                                    <span style="margin-left: 8px;">src/components/ChatPanel.tsx</span>
+                                </div>
+                                <div class="file-item" style="padding-left: 20px;">
+                                    <span style="color: var(--text-error);">D</span>
+                                    <span style="margin-left: 8px;">old-file.js</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <input type="text" placeholder="Commit message" style="width: 100%; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; margin-bottom: 8px;">
+                                <button style="background: var(--bg-accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Commit</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="extensions-content" class="hidden">
+                        <div style="padding: 12px;">
+                            <input type="text" placeholder="Search extensions..." style="width: 100%; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; margin-bottom: 16px;">
+                            <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">Popular Extensions:</div>
+                            <div class="file-item">
+                                <span>🎨</span>
+                                <span style="margin-left: 8px;">Prettier</span>
+                            </div>
+                            <div class="file-item">
+                                <span>⚡</span>
+                                <span style="margin-left: 8px;">ESLint</span>
+                            </div>
+                            <div class="file-item">
+                                <span>🔧</span>
+                                <span style="margin-left: 8px;">TypeScript</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Area -->
+            <div class="editor-area">
+                <div class="editor-tabs" id="editor-tabs">
+                    <!-- Tabs will be populated by JavaScript -->
+                </div>
+                <div class="editor-content" id="editor-content">
+                    <textarea class="code-editor" id="code-editor" spellcheck="false"></textarea>
+                    <div class="syntax-highlight" id="syntax-highlight"></div>
+                    <div class="minimap"></div>
+                </div>
+            </div>
+
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <div class="chat-resize-handle" data-resize="chat"></div>
+                <div class="chat-header">
+                    <div class="chat-header-title">
+                        <span>🤖</span>
+                        <span>Cursor AI</span>
+                        <span class="loading hidden" id="chat-loading"></span>
+                    </div>
+                    <div>
+                        <span style="cursor: pointer;" title="Settings" onclick="openChatSettings()">⚙️</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="Clear Chat" onclick="clearChat()">🗑️</span>
+                        <span style="cursor: pointer; margin-left: 8px;" title="Toggle Chat" onclick="toggleChat()">↔️</span>
+                    </div>
+                </div>
+                <div class="chat-content" id="chat-content">
+                    <!-- Initial welcome message -->
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <textarea 
+                            id="chat-input" 
+                            class="chat-input" 
+                            placeholder="Ask Cursor AI anything... (⌘+K to focus)"
+                            rows="1"
+                        ></textarea>
+                        <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">Send</button>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 8px; text-align: center;">
+                        Press Enter to send, Shift+Enter for new line • ⌘+K to focus
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item" onclick="showBranchMenu()">
+                    <span>🌿</span>
+                    <span id="current-branch">main</span>
+                </div>
+                <div class="status-item" onclick="syncRepository()">
+                    <span>☁️</span>
+                    <span id="sync-status">Sync: 0↑ 0↓</span>
+                </div>
+                <div class="status-item" onclick="showProblems()">
+                    <span>✅</span>
+                    <span id="error-count">0</span>
+                </div>
+                <div class="status-item" onclick="showProblems()">
+                    <span>⚠️</span>
+                    <span id="warning-count">0</span>
+                </div>
+                <div class="status-item" onclick="showProblems()">
+                    <span>❌</span>
+                    <span id="info-count">0</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-item" id="cursor-position">Ln 1, Col 1</div>
+                <div class="status-item" onclick="changeIndentation()">Spaces: 2</div>
+                <div class="status-item" onclick="changeEncoding()">UTF-8</div>
+                <div class="status-item" onclick="changeLanguage()">TypeScript</div>
+                <div class="status-item" onclick="toggleLiveShare()">🔴 Live Share</div>
+                <div style="background: var(--text-success); padding: 2px 6px; border-radius: 2px; font-weight: bold;">
+                    Cursor
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="command-palette" id="command-palette">
+        <input type="text" class="command-input" id="command-input" placeholder="Type a command...">
+        <div class="command-results" id="command-results"></div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobilePanels()"></div>
+
+    <!-- Notifications Container -->
+    <div class="notifications" id="notifications"></div>
+
+    <script>
+        // Application State
+        const appState = {
+            files: {},
+            openTabs: [],
+            activeTab: null,
+            currentFile: null,
+            chatMessages: [],
+            sidebarWidth: 300,
+            chatPanelWidth: 400,
+            isResizing: false,
+            searchResults: [],
+            commandHistory: []
+        };
+
+        // File System Structure
+        const fileSystem = {
+            'src': {
+                type: 'folder',
+                children: {
+                    'components': {
+                        type: 'folder',
+                        children: {
+                            'App.tsx': {
+                                type: 'file',
+                                content: `import { FluentProvider, webDarkTheme } from '@fluentui/react-components';
+import './App.css';
+
+// Components
+import Sidebar from './components/Sidebar';
+import EditorArea from './components/EditorArea';
+import StatusBar from './components/StatusBar';
+import ChatPanel from './components/ChatPanel';
+
+function App() {
+  return (
+    <FluentProvider theme={webDarkTheme}>
+      <div className="app-container">
+        <div className="main-content">
+          <Sidebar />
+          <EditorArea />
+          <ChatPanel />
+        </div>
+        <StatusBar />
+      </div>
+    </FluentProvider>
+  );
+}
+
+export default App;`,
+                                language: 'typescript'
+                            },
+                            'Sidebar.tsx': {
+                                type: 'file',
+                                content: `import React, { useState } from 'react';
+import { Button, Input } from '@fluentui/react-components';
+
+const Sidebar: React.FC = () => {
+  const [selectedTab, setSelectedTab] = useState('explorer');
+  
+  return (
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <span>Explorer</span>
+      </div>
+      {/* Sidebar content */}
+    </div>
+  );
+};
+
+export default Sidebar;`,
+                                language: 'typescript'
+                            },
+                            'EditorArea.tsx': {
+                                type: 'file',
+                                content: `import React, { useState } from 'react';
+import Editor from '@monaco-editor/react';
+
+const EditorArea: React.FC = () => {
+  const [activeFile, setActiveFile] = useState(null);
+  
+  return (
+    <div className="editor-area">
+      <div className="editor-tabs">
+        {/* Editor tabs */}
+      </div>
+      <div className="editor-content">
+        {/* Monaco Editor */}
+      </div>
+    </div>
+  );
+};
+
+export default EditorArea;`,
+                                language: 'typescript'
+                            },
+                            'ChatPanel.tsx': {
+                                type: 'file',
+                                content: `import React, { useState } from 'react';
+import { Button, Textarea } from '@fluentui/react-components';
+
+const ChatPanel: React.FC = () => {
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  
+  return (
+    <div className="chat-panel">
+      <div className="chat-header">
+        <span>Cursor AI</span>
+      </div>
+      <div className="chat-content">
+        {/* Chat messages */}
+      </div>
+      <div className="chat-input-area">
+        {/* Chat input */}
+      </div>
+    </div>
+  );
+};
+
+export default ChatPanel;`,
+                                language: 'typescript'
+                            }
+                        }
+                    },
+                    'App.css': {
+                        type: 'file',
+                        content: `/* App styles */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #1e1e1e;
+  color: #cccccc;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}`,
+                        language: 'css'
+                    },
+                    'main.tsx': {
+                        type: 'file',
+                        content: `import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)`,
+                        language: 'typescript'
+                    }
+                }
+            },
+            'public': {
+                type: 'folder',
+                children: {
+                    'vite.svg': {
+                        type: 'file',
+                        content: '<svg><!-- Vite SVG content --></svg>',
+                        language: 'xml'
+                    }
+                }
+            },
+            'package.json': {
+                type: 'file',
+                content: `{
+  "name": "cursor-clone",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.54.0",
+    "@fluentui/react-icons": "^2.0.239",
+    "@monaco-editor/react": "^4.6.0",
+    "monaco-editor": "^0.45.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.3"
+  }
+}`,
+                language: 'json'
+            },
+            'README.md': {
+                type: 'file',
+                content: `# Cursor AI Clone
+
+This is a comprehensive frontend clone of Cursor AI, built with modern web technologies.
+
+## Features
+
+- 🎨 **VS Code-like Interface**: Familiar layout with activity bar, sidebar, editor, and panels
+- 🤖 **AI Chat Integration**: Interactive chat panel with simulated AI responses
+- 📁 **File Explorer**: Hierarchical file tree with expand/collapse functionality
+- 📝 **Code Editor**: Syntax-highlighted code editing with multiple tabs
+- 🔍 **Search & Replace**: Global search across files with replace functionality
+- 🌿 **Source Control**: Git integration panel with change tracking
+- 🧩 **Extensions**: Extension management interface
+- 📱 **Responsive Design**: Mobile-friendly with collapsible panels
+- ⌨️ **Keyboard Shortcuts**: Common VS Code shortcuts supported
+- 🎭 **Dark Theme**: Professional dark color scheme
+
+## Interactive Features
+
+- **Resizable Panels**: Drag to resize sidebar and chat panel
+- **File Management**: Create, open, and manage files
+- **Tab Management**: Multiple file tabs with close functionality
+- **Real-time Chat**: Send messages and receive AI responses
+- **Command Palette**: Quick access to commands (⌘+⇧+P)
+- **Search**: Find and replace across all files
+- **Notifications**: Toast notifications for user actions
+
+## Keyboard Shortcuts
+
+- \`⌘+⇧+E\` - Toggle Explorer
+- \`⌘+⇧+F\` - Toggle Search
+- \`⌃+⇧+G\` - Toggle Source Control
+- \`⌘+⇧+X\` - Toggle Extensions
+- \`⌘+⇧+P\` - Command Palette
+- \`⌘+K\` - Focus Chat Input
+- \`⌘+W\` - Close Tab
+- \`⌘+T\` - New Tab
+
+## Technologies Used
+
+- **HTML5 & CSS3**: Modern layout with CSS Grid and Flexbox
+- **Vanilla JavaScript**: Interactive functionality without frameworks
+- **CSS Custom Properties**: Consistent theming system
+- **Responsive Design**: Mobile-first approach
+- **Accessibility**: ARIA labels and keyboard navigation
+
+## Getting Started
+
+Simply open this HTML file in any modern web browser. No build process or dependencies required!
+
+Built with ❤️ for developers who love great tools.`,
+                language: 'markdown'
+            },
+            'tsconfig.json': {
+                type: 'file',
+                content: `{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}`,
+                language: 'json'
+            }
+        };
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            setupEventListeners();
+            renderFileExplorer();
+            addWelcomeMessage();
+            openFile('src/components/App.tsx');
+        });
+
+        function initializeApp() {
+            // Set up initial state
+            appState.files = flattenFileSystem(fileSystem);
+            
+            // Load saved state from localStorage
+            const savedState = localStorage.getItem('cursorCloneState');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    Object.assign(appState, parsed);
+                } catch (e) {
+                    console.warn('Failed to load saved state:', e);
+                }
+            }
+        }
+
+        function flattenFileSystem(fs, path = '') {
+            const result = {};
+            
+            for (const [name, item] of Object.entries(fs)) {
+                const fullPath = path ? `${path}/${name}` : name;
+                
+                if (item.type === 'file') {
+                    result[fullPath] = item;
+                } else if (item.type === 'folder' && item.children) {
+                    Object.assign(result, flattenFileSystem(item.children, fullPath));
+                }
+            }
+            
+            return result;
+        }
+
+        function setupEventListeners() {
+            // Activity bar
+            document.querySelectorAll('.activity-icon[data-panel]').forEach(icon => {
+                icon.addEventListener('click', () => switchPanel(icon.dataset.panel));
+            });
+
+            // Resize handles
+            document.querySelectorAll('.resize-handle, .chat-resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', startResize);
+            });
+
+            // Code editor
+            const codeEditor = document.getElementById('code-editor');
+            codeEditor.addEventListener('input', handleCodeChange);
+            codeEditor.addEventListener('scroll', syncSyntaxHighlight);
+            codeEditor.addEventListener('keydown', handleEditorKeydown);
+
+            // Chat input
+            const chatInput = document.getElementById('chat-input');
+            chatInput.addEventListener('keydown', handleChatKeydown);
+            chatInput.addEventListener('input', autoResizeChatInput);
+
+            // Search input
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', debounce(performSearch, 300));
+
+            // Command palette
+            document.addEventListener('keydown', handleGlobalKeydown);
+
+            // Window events
+            window.addEventListener('resize', handleWindowResize);
+            window.addEventListener('beforeunload', saveState);
+
+            // Prevent default drag behavior
+            document.addEventListener('dragover', e => e.preventDefault());
+            document.addEventListener('drop', e => e.preventDefault());
+        }
+
+        // Panel switching
+        function switchPanel(panelName) {
+            // Update activity bar
+            document.querySelectorAll('.activity-icon').forEach(icon => {
+                icon.classList.toggle('active', icon.dataset.panel === panelName);
+            });
+
+            // Hide all content panels
+            document.querySelectorAll('[id$="-content"]').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+
+            // Show selected panel
+            const panelContent = document.getElementById(`${panelName}-content`);
+            if (panelContent) {
+                panelContent.classList.remove('hidden');
+            }
+
+            // Update sidebar title
+            const titles = {
+                'explorer': 'Explorer',
+                'search': 'Search',
+                'source-control': 'Source Control',
+                'extensions': 'Extensions'
+            };
+            document.getElementById('sidebar-title').textContent = titles[panelName] || panelName;
+
+            // Focus appropriate input
+            if (panelName === 'search') {
+                setTimeout(() => document.getElementById('search-input').focus(), 100);
+            }
+        }
+
+        // File Explorer
+        function renderFileExplorer() {
+            const container = document.getElementById('file-explorer');
+            container.innerHTML = '';
+            
+            renderFileTree(fileSystem, container, '');
+        }
+
+        function renderFileTree(tree, container, path) {
+            for (const [name, item] of Object.entries(tree)) {
+                const fullPath = path ? `${path}/${name}` : name;
+                const fileItem = createFileItem(name, item, fullPath);
+                container.appendChild(fileItem);
+                
+                if (item.type === 'folder' && item.children) {
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'file-children';
+                    renderFileTree(item.children, childrenContainer, fullPath);
+                    container.appendChild(childrenContainer);
+                }
+            }
+        }
+
+        function createFileItem(name, item, fullPath) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.dataset.path = fullPath;
+            
+            const icon = document.createElement('span');
+            icon.className = 'file-icon';
+            
+            if (item.type === 'folder') {
+                icon.className += ' folder';
+                icon.textContent = '📁';
+                div.addEventListener('click', () => toggleFolder(div));
+            } else {
+                icon.textContent = getFileIcon(name);
+                div.addEventListener('click', () => openFile(fullPath));
+            }
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            
+            div.appendChild(icon);
+            div.appendChild(nameSpan);
+            
+            return div;
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop()?.toLowerCase();
+            const iconMap = {
+                'tsx': '⚛️',
+                'ts': '🔷',
+                'js': '🟨',
+                'jsx': '⚛️',
+                'css': '🎨',
+                'json': '📄',
+                'md': '📝',
+                'html': '🌐',
+                'svg': '🖼️',
+                'png': '🖼️',
+                'jpg': '🖼️',
+                'gif': '🖼️'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        function toggleFolder(folderElement) {
+            const isExpanded = folderElement.classList.contains('expanded');
+            const childrenContainer = folderElement.nextElementSibling;
+            
+            if (childrenContainer && childrenContainer.classList.contains('file-children')) {
+                if (isExpanded) {
+                    folderElement.classList.remove('expanded');
+                    childrenContainer.classList.remove('expanded');
+                } else {
+                    folderElement.classList.add('expanded');
+                    childrenContainer.classList.add('expanded');
+                }
+            }
+        }
+
+        // File Management
+        function openFile(path) {
+            const file = appState.files[path];
+            if (!file) return;
+
+            // Update file explorer selection
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.toggle('selected', item.dataset.path === path);
+            });
+
+            // Add or switch to tab
+            if (!appState.openTabs.includes(path)) {
+                appState.openTabs.push(path);
+            }
+            
+            appState.activeTab = path;
+            appState.currentFile = path;
+            
+            renderTabs();
+            loadFileContent(file);
+            updateStatusBar();
+        }
+
+        function closeTab(path, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            const index = appState.openTabs.indexOf(path);
+            if (index > -1) {
+                appState.openTabs.splice(index, 1);
+                
+                // Switch to another tab if this was active
+                if (appState.activeTab === path) {
+                    if (appState.openTabs.length > 0) {
+                        const newIndex = Math.max(0, index - 1);
+                        appState.activeTab = appState.openTabs[newIndex];
+                        const file = appState.files[appState.activeTab];
+                        if (file) loadFileContent(file);
+                    } else {
+                        appState.activeTab = null;
+                        appState.currentFile = null;
+                        document.getElementById('code-editor').value = '';
+                    }
+                }
+            }
+            
+            renderTabs();
+            updateStatusBar();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('editor-tabs');
+            container.innerHTML = '';
+            
+            appState.openTabs.forEach(path => {
+                const tab = createTab(path);
+                container.appendChild(tab);
+            });
+        }
+
+        function createTab(path) {
+            const file = appState.files[path];
+            const filename = path.split('/').pop();
+            
+            const tab = document.createElement('div');
+            tab.className = `editor-tab ${appState.activeTab === path ? 'active' : ''}`;
+            tab.addEventListener('click', () => switchTab(path));
+            
+            const icon = document.createElement('span');
+            icon.textContent = getFileIcon(filename);
+            icon.style.marginRight = '8px';
+            
+            const name = document.createElement('span');
+            name.textContent = filename;
+            
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'editor-tab-close';
+            closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', (e) => closeTab(path, e));
+            
+            tab.appendChild(icon);
+            tab.appendChild(name);
+            tab.appendChild(closeBtn);
+            
+            return tab;
+        }
+
+        function switchTab(path) {
+            appState.activeTab = path;
+            appState.currentFile = path;
+            
+            const file = appState.files[path];
+            if (file) {
+                loadFileContent(file);
+                renderTabs();
+                updateStatusBar();
+            }
+        }
+
+        function loadFileContent(file) {
+            const editor = document.getElementById('code-editor');
+            editor.value = file.content || '';
+            applySyntaxHighlighting(file.content || '', file.language);
+            updateCursorPosition();
+        }
+
+        // Code Editor
+        function handleCodeChange(event) {
+            const content = event.target.value;
+            
+            if (appState.currentFile) {
+                const file = appState.files[appState.currentFile];
+                if (file) {
+                    file.content = content;
+                    applySyntaxHighlighting(content, file.language);
+                    updateStatusBar();
+                }
+            }
+        }
+
+        function applySyntaxHighlighting(code, language) {
+            const highlightContainer = document.getElementById('syntax-highlight');
+            
+            // Simple syntax highlighting
+            let highlighted = code;
+            
+            if (language === 'typescript' || language === 'javascript') {
+                highlighted = highlighted
+                    .replace(/\b(import|export|from|const|let|var|function|class|interface|type|enum)\b/g, '<span style="color: #569cd6;">$1</span>')
+                    .replace(/\b(true|false|null|undefined)\b/g, '<span style="color: #569cd6;">$1</span>')
+                    .replace(/'([^']*?)'/g, '<span style="color: #ce9178;">\'$1\'</span>')
+                    .replace(/"([^"]*?)"/g, '<span style="color: #ce9178;">"$1"</span>')
+                    .replace(/\/\/.*$/gm, '<span style="color: #6a9955;">$&</span>')
+                    .replace(/\/\*[\s\S]*?\*\//g, '<span style="color: #6a9955;">$&</span>');
+            } else if (language === 'css') {
+                highlighted = highlighted
+                    .replace(/([a-zA-Z-]+)(\s*):(\s*)([^;]+);/g, '<span style="color: #92c5f8;">$1</span>$2:<span style="color: #ce9178;">$3$4</span>;')
+                    .replace(/\/\*[\s\S]*?\*\//g, '<span style="color: #6a9955;">$&</span>');
+            }
+            
+            highlightContainer.innerHTML = highlighted;
+        }
+
+        function syncSyntaxHighlight() {
+            const editor = document.getElementById('code-editor');
+            const highlight = document.getElementById('syntax-highlight');
+            highlight.scrollTop = editor.scrollTop;
+            highlight.scrollLeft = editor.scrollLeft;
+        }
+
+        function handleEditorKeydown(event) {
+            const editor = event.target;
+            
+            // Tab handling
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const value = editor.value;
+                
+                if (event.shiftKey) {
+                    // Unindent
+                    const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                    if (value.substr(lineStart, 2) === '  ') {
+                        editor.value = value.substring(0, lineStart) + value.substring(lineStart + 2);
+                        editor.selectionStart = editor.selectionEnd = start - 2;
+                    }
+                } else {
+                    // Indent
+                    editor.value = value.substring(0, start) + '  ' + value.substring(end);
+                    editor.selectionStart = editor.selectionEnd = start + 2;
+                }
+                
+                handleCodeChange({ target: editor });
+            }
+            
+            updateCursorPosition();
+        }
+
+        function updateCursorPosition() {
+            const editor = document.getElementById('code-editor');
+            const text = editor.value.substring(0, editor.selectionStart);
+            const lines = text.split('\n');
+            const line = lines.length;
+            const column = lines[lines.length - 1].length + 1;
+            
+            document.getElementById('cursor-position').textContent = `Ln ${line}, Col ${column}`;
+        }
+
+        // Chat System
+        function addWelcomeMessage() {
+            const welcomeMessage = {
+                id: Date.now().toString(),
+                type: 'assistant',
+                content: 'Hello! I\'m Cursor AI, your intelligent coding assistant. I can help you write, debug, and improve your code. What would you like to work on today?',
+                timestamp: new Date()
+            };
+            
+            appState.chatMessages.push(welcomeMessage);
+            renderChatMessage(welcomeMessage);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const userMessage = {
+                id: Date.now().toString(),
+                type: 'user',
+                content: message,
+                timestamp: new Date()
+            };
+
+            appState.chatMessages.push(userMessage);
+            renderChatMessage(userMessage);
+            
+            input.value = '';
+            autoResizeChatInput({ target: input });
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Simulate AI response
+            setTimeout(() => {
+                hideTypingIndicator();
+                const aiResponse = generateAIResponse(message);
+                const assistantMessage = {
+                    id: (Date.now() + 1).toString(),
+                    type: 'assistant',
+                    content: aiResponse,
+                    timestamp: new Date()
+                };
+                
+                appState.chatMessages.push(assistantMessage);
+                renderChatMessage(assistantMessage);
+            }, 1000 + Math.random() * 2000);
+            
+            scrollChatToBottom();
+        }
+
+        function renderChatMessage(message) {
+            const chatContent = document.getElementById('chat-content');
+            const messageElement = createChatMessageElement(message);
+            chatContent.appendChild(messageElement);
+            scrollChatToBottom();
+        }
+
+        function createChatMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.dataset.messageId = message.id;
+            
+            const avatar = document.createElement('div');
+            avatar.className = `chat-avatar ${message.type}`;
+            avatar.textContent = message.type === 'user' ? '👤' : '🤖';
+            
+            const content = document.createElement('div');
+            content.className = 'chat-message-content';
+            
+            const header = document.createElement('div');
+            header.className = 'chat-message-header';
+            
+            const name = document.createElement('span');
+            name.className = `chat-message-name ${message.type}`;
+            name.textContent = message.type === 'user' ? 'You' : 'Cursor AI';
+            
+            const time = document.createElement('span');
+            time.className = 'chat-message-time';
+            time.textContent = formatTime(message.timestamp);
+            
+            const text = document.createElement('div');
+            text.className = 'chat-message-text';
+            text.innerHTML = formatMessageContent(message.content);
+            
+            header.appendChild(name);
+            header.appendChild(time);
+            content.appendChild(header);
+            content.appendChild(text);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            return messageDiv;
+        }
+
+        function formatMessageContent(content) {
+            // Convert markdown-like formatting
+            return content
+                .replace(/`([^`]+)`/g, '<code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 3px;">$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function generateAIResponse(userMessage) {
+            const responses = [
+                "I'd be happy to help you with that! Looking at your code, I can see a few areas where we can make improvements.",
+                "That's a great question! Let me break this down step by step for you.",
+                "I can help you implement this feature. Here's how I would approach it:",
+                "This looks like a common pattern in React development. Let me show you the best practices.",
+                "I notice you're working with TypeScript. Here are some type-safe solutions:",
+                "Great code! I have a few suggestions to make it even better:",
+                "Let me help you debug this. Based on the error, here's what's likely happening:",
+                "I can see what you're trying to achieve. Here's a clean, efficient solution:",
+                "This is an interesting challenge! Let me walk you through the solution:",
+                "Perfect! I can help optimize this code for better performance."
+            ];
+            
+            // Add some context-aware responses
+            if (userMessage.toLowerCase().includes('error') || userMessage.toLowerCase().includes('bug')) {
+                return "I can help you debug this issue! Could you share the specific error message you're seeing? In the meantime, here are some common troubleshooting steps...";
+            }
+            
+            if (userMessage.toLowerCase().includes('react') || userMessage.toLowerCase().includes('component')) {
+                return "Great! I love helping with React development. For this component, I'd recommend using modern patterns like hooks and proper TypeScript types...";
+            }
+            
+            if (userMessage.toLowerCase().includes('performance') || userMessage.toLowerCase().includes('optimize')) {
+                return "Performance optimization is crucial! Let me analyze your code and suggest some improvements like memoization, lazy loading, and bundle splitting...";
+            }
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function showTypingIndicator() {
+            const chatContent = document.getElementById('chat-content');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message';
+            typingDiv.id = 'typing-indicator';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'chat-avatar assistant';
+            avatar.textContent = '🤖';
+            
+            const content = document.createElement('div');
+            content.className = 'chat-message-content';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = `
+                <span>Cursor AI is typing</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            content.appendChild(indicator);
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(content);
+            chatContent.appendChild(typingDiv);
+            
+            scrollChatToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function clearChat() {
+            appState.chatMessages = [];
+            document.getElementById('chat-content').innerHTML = '';
+            addWelcomeMessage();
+            showNotification('Chat cleared', 'info');
+        }
+
+        function scrollChatToBottom() {
+            const chatContent = document.getElementById('chat-content');
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+
+        function handleChatKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResizeChatInput(event) {
+            const textarea = event.target;
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // Search Functionality
+        function performSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const results = [];
+            
+            if (!query) {
+                document.getElementById('search-results').innerHTML = 'Enter text to search across files';
+                return;
+            }
+            
+            for (const [path, file] of Object.entries(appState.files)) {
+                if (file.content && file.content.toLowerCase().includes(query)) {
+                    const lines = file.content.split('\n');
+                    const matches = [];
+                    
+                    lines.forEach((line, index) => {
+                        if (line.toLowerCase().includes(query)) {
+                            matches.push({
+                                line: index + 1,
+                                content: line.trim(),
+                                index: line.toLowerCase().indexOf(query)
+                            });
+                        }
+                    });
+                    
+                    if (matches.length > 0) {
+                        results.push({ path, matches });
+                    }
+                }
+            }
+            
+            displaySearchResults(results, query);
+        }
+
+        function displaySearchResults(results, query) {
+            const container = document.getElementById('search-results');
+            
+            if (results.length === 0) {
+                container.innerHTML = `<div style="color: var(--text-secondary);">No results found for "${query}"</div>`;
+                return;
+            }
+            
+            const totalMatches = results.reduce((sum, result) => sum + result.matches.length, 0);
+            let html = `<div style="margin-bottom: 12px; font-weight: bold;">${totalMatches} results in ${results.length} files</div>`;
+            
+            results.forEach(result => {
+                html += `
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-weight: bold; color: var(--text-accent); cursor: pointer;" onclick="openFile('${result.path}')">
+                            ${result.path} (${result.matches.length} matches)
+                        </div>
+                        ${result.matches.slice(0, 5).map(match => `
+                            <div style="margin-left: 16px; margin-top: 4px; font-size: 12px; cursor: pointer;" onclick="openFileAtLine('${result.path}', ${match.line})">
+                                <span style="color: var(--text-secondary);">${match.line}:</span>
+                                <span>${highlightMatch(match.content, query)}</span>
+                            </div>
+                        `).join('')}
+                        ${result.matches.length > 5 ? `<div style="margin-left: 16px; color: var(--text-secondary); font-size: 12px;">...and ${result.matches.length - 5} more</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function highlightMatch(text, query) {
+            const index = text.toLowerCase().indexOf(query.toLowerCase());
+            if (index === -1) return text;
+            
+            return text.substring(0, index) + 
+                   `<span style="background-color: var(--bg-accent); color: white; padding: 1px 2px;">${text.substring(index, index + query.length)}</span>` +
+                   text.substring(index + query.length);
+        }
+
+        function openFileAtLine(path, line) {
+            openFile(path);
+            // In a real editor, we would scroll to the specific line
+            showNotification(`Opened ${path.split('/').pop()} at line ${line}`, 'info');
+        }
+
+        // Resize Functionality
+        function startResize(event) {
+            appState.isResizing = true;
+            const resizeType = event.target.dataset.resize;
+            
+            const startX = event.clientX;
+            const startWidth = resizeType === 'sidebar' ? 
+                parseInt(getComputedStyle(document.querySelector('.sidebar')).width) :
+                parseInt(getComputedStyle(document.querySelector('.chat-panel')).width);
+            
+            function handleMouseMove(e) {
+                if (!appState.isResizing) return;
+                
+                const deltaX = e.clientX - startX;
+                let newWidth;
+                
+                if (resizeType === 'sidebar') {
+                    newWidth = Math.max(200, Math.min(600, startWidth + deltaX));
+                    document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+                    appState.sidebarWidth = newWidth;
+                } else if (resizeType === 'chat') {
+                    newWidth = Math.max(250, Math.min(600, startWidth - deltaX));
+                    document.documentElement.style.setProperty('--chat-panel-width', newWidth + 'px');
+                    appState.chatPanelWidth = newWidth;
+                }
+            }
+            
+            function handleMouseUp() {
+                appState.isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+        }
+
+        // Command Palette
+        function showCommandPalette() {
+            const palette = document.getElementById('command-palette');
+            const input = document.getElementById('command-input');
+            
+            palette.classList.add('show');
+            input.focus();
+            input.value = '';
+            
+            populateCommands();
+        }
+
+        function hideCommandPalette() {
+            const palette = document.getElementById('command-palette');
+            palette.classList.remove('show');
+        }
+
+        function populateCommands() {
+            const commands = [
+                { name: 'New File', action: () => createNewFile() },
+                { name: 'Open File', action: () => openFileDialog() },
+                { name: 'Save File', action: () => saveCurrentFile() },
+                { name: 'Close Tab', action: () => closeTab(appState.activeTab) },
+                { name: 'Toggle Explorer', action: () => switchPanel('explorer') },
+                { name: 'Toggle Search', action: () => switchPanel('search') },
+                { name: 'Clear Chat', action: () => clearChat() },
+                { name: 'Focus Chat', action: () => focusChatInput() },
+                { name: 'Refresh Explorer', action: () => refreshExplorer() }
+            ];
+            
+            const results = document.getElementById('command-results');
+            results.innerHTML = commands.map((cmd, index) => 
+                `<div class="command-item ${index === 0 ? 'selected' : ''}" onclick="executeCommand('${cmd.name}')">${cmd.name}</div>`
+            ).join('');
+        }
+
+        // Keyboard Shortcuts
+        function handleGlobalKeydown(event) {
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const cmdKey = isMac ? event.metaKey : event.ctrlKey;
+            
+            // Command Palette
+            if (cmdKey && event.shiftKey && event.key === 'P') {
+                event.preventDefault();
+                showCommandPalette();
+                return;
+            }
+            
+            // Hide command palette on Escape
+            if (event.key === 'Escape') {
+                hideCommandPalette();
+                return;
+            }
+            
+            // Focus chat input
+            if (cmdKey && event.key === 'k') {
+                event.preventDefault();
+                focusChatInput();
+                return;
+            }
+            
+            // Panel shortcuts
+            if (cmdKey && event.shiftKey) {
+                switch (event.key) {
+                    case 'E':
+                        event.preventDefault();
+                        switchPanel('explorer');
+                        break;
+                    case 'F':
+                        event.preventDefault();
+                        switchPanel('search');
+                        break;
+                    case 'X':
+                        event.preventDefault();
+                        switchPanel('extensions');
+                        break;
+                }
+            }
+            
+            // Tab management
+            if (cmdKey && event.key === 'w') {
+                event.preventDefault();
+                if (appState.activeTab) {
+                    closeTab(appState.activeTab);
+                }
+            }
+            
+            if (cmdKey && event.key === 't') {
+                event.preventDefault();
+                createNewFile();
+            }
+        }
+
+        // Utility Functions
+        function createNewFile() {
+            const name = prompt('Enter file name:');
+            if (!name) return;
+            
+            const content = '';
+            const language = getLanguageFromFilename(name);
+            
+            appState.files[name] = { type: 'file', content, language };
+            openFile(name);
+            showNotification(`Created ${name}`, 'success');
+        }
+
+        function createNewFolder() {
+            const name = prompt('Enter folder name:');
+            if (!name) return;
+            
+            // In a real implementation, we'd update the file system structure
+            showNotification(`Created folder ${name}`, 'success');
+        }
+
+        function refreshExplorer() {
+            renderFileExplorer();
+            showNotification('Explorer refreshed', 'info');
+        }
+
+        function focusChatInput() {
+            document.getElementById('chat-input').focus();
+        }
+
+        function getLanguageFromFilename(filename) {
+            const ext = filename.split('.').pop()?.toLowerCase();
+            const languageMap = {
+                'js': 'javascript',
+                'jsx': 'javascript',
+                'ts': 'typescript',
+                'tsx': 'typescript',
+                'css': 'css',
+                'html': 'html',
+                'json': 'json',
+                'md': 'markdown',
+                'py': 'python',
+                'java': 'java',
+                'cpp': 'cpp',
+                'c': 'c'
+            };
+            return languageMap[ext] || 'text';
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            notification.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function updateStatusBar() {
+            // Update various status bar items
+            const file = appState.currentFile ? appState.files[appState.currentFile] : null;
+            
+            if (file) {
+                // Update language
+                const languageElement = document.querySelector('.status-right .status-item:nth-child(4)');
+                if (languageElement) {
+                    languageElement.textContent = file.language || 'Text';
+                }
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('cursorCloneState', JSON.stringify({
+                    openTabs: appState.openTabs,
+                    activeTab: appState.activeTab,
+                    sidebarWidth: appState.sidebarWidth,
+                    chatPanelWidth: appState.chatPanelWidth,
+                    chatMessages: appState.chatMessages.slice(-50) // Keep last 50 messages
+                }));
+            } catch (e) {
+                console.warn('Failed to save state:', e);
+            }
+        }
+
+        function handleWindowResize() {
+            // Handle responsive design
+            const width = window.innerWidth;
+            
+            if (width <= 768) {
+                // Mobile mode
+                document.body.classList.add('mobile');
+            } else {
+                document.body.classList.remove('mobile');
+            }
+        }
+
+        // Status Bar Actions (placeholders)
+        function showBranchMenu() { showNotification('Branch menu opened', 'info'); }
+        function syncRepository() { showNotification('Repository synced', 'success'); }
+        function showProblems() { showNotification('Problems panel opened', 'info'); }
+        function changeIndentation() { showNotification('Indentation changed', 'info'); }
+        function changeEncoding() { showNotification('Encoding changed', 'info'); }
+        function changeLanguage() { showNotification('Language changed', 'info'); }
+        function toggleLiveShare() { showNotification('Live Share toggled', 'info'); }
+        function openChatSettings() { showNotification('Chat settings opened', 'info'); }
+        function toggleChat() { 
+            const chatPanel = document.querySelector('.chat-panel');
+            chatPanel.style.display = chatPanel.style.display === 'none' ? 'flex' : 'none';
+            showNotification('Chat panel toggled', 'info');
+        }
+
+        // Mobile responsive functions
+        function closeMobilePanels() {
+            document.querySelector('.sidebar').classList.remove('show');
+            document.querySelector('.chat-panel').classList.remove('show');
+            document.getElementById('mobile-overlay').classList.remove('show');
+        }
+
+        // Initialize cursor position tracking
+        setInterval(() => {
+            const editor = document.getElementById('code-editor');
+            if (document.activeElement === editor) {
+                updateCursorPosition();
+            }
+        }, 100);
+    </script>
+</body>
+</html>
