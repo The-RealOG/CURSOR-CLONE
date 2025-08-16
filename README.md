@@ -229,8 +229,8 @@ This project demonstrates practical application of HCI principles:
 ## Contributors
 
 **Project Team:**
-- **Chibueze Kingsley Anyachebelu** - Lead Developer & UX Researcher
-- **Jerome Bizimana** - Co-Developer & User Experience Designer
+- **Chibueze Kingsley Anyachebelu** - Developer & UX Researcher
+- **Jerome Bizimana** - User Experience Designer
 
 Developed as part of HCI coursework focusing on needfinding, prototyping, and user testing methodologies for improving developer tools and AI-assisted programming environments.
 
